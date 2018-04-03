@@ -45,5 +45,11 @@ namespace Dapplo.Confluence.Entities
 		/// </summary>
 		[DataMember(Name = "view", EmitDefaultValue = false)]
 		public BodyContent View { get; set; }
+
+		/// <summary>
+		///		View for export
+		/// </summary>
+		[DataMember(Name = "export_view", EmitDefaultValue = false)]
+		public BodyContent ExportView { get; set; }
 	}
 }

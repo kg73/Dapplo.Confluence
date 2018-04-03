@@ -59,7 +59,7 @@ namespace Dapplo.Confluence
         /// </summary>
         /// <param name="confluenceUri">Base URL, e.g. https://yourConfluenceserver</param>
         /// <param name="httpSettings">IHttpSettings or null for default</param>
-        private ConfluenceClient(Uri confluenceUri, IHttpSettings httpSettings = null)
+        public ConfluenceClient(Uri confluenceUri, IHttpSettings httpSettings = null)
         {
             ConfluenceUri = confluenceUri ?? throw new ArgumentNullException(nameof(confluenceUri));
             ConfluenceApiUri = confluenceUri.AppendSegments("rest", "api");
@@ -194,7 +194,7 @@ namespace Dapplo.Confluence
         /// <param name="behaviour">IChangeableHttpBehaviour</param>
         /// <param name="httpSettings">IHttpSettings</param>
         /// <returns>the behaviour, but configured as IHttpBehaviour </returns>
-        protected IHttpBehaviour ConfigureBehaviour(IChangeableHttpBehaviour behaviour, IHttpSettings httpSettings = null)
+        protected virtual IHttpBehaviour ConfigureBehaviour(IChangeableHttpBehaviour behaviour, IHttpSettings httpSettings = null)
         {
             behaviour.HttpSettings = httpSettings ?? HttpExtensionsGlobals.HttpSettings;
 #if NET45 || NET46
