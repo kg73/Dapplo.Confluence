@@ -37,23 +37,8 @@ Task("Default")
 
 // Publish taks depends on publish specifics
 Task("Publish")
-	.IsDependentOn("PublishCoverage")
 	.IsDependentOn("PublishPackages")
     .WithCriteria(() => !BuildSystem.IsLocalBuild);
-
-// Publish the coveralls report to Coveralls.NET
-Task("PublishCoverage")
-    .IsDependentOn("Coverage")
-    .WithCriteria(() => !BuildSystem.IsLocalBuild)
-    .WithCriteria(() => !string.IsNullOrEmpty(coverallsRepoToken))
-    .WithCriteria(() => !isPullRequest)
-    .Does(()=>
-{
-	CoverallsNet("./artifacts/coverage.xml", CoverallsNetReportType.OpenCover, new CoverallsNetSettings
-    {
-        RepoToken = coverallsRepoToken
-    });
-});
 
 // Publish the Artifacts of the Package Task to NuGet
 Task("PublishPackages")
@@ -112,65 +97,6 @@ Task("Documentation")
     CreateDirectory("artifacts");
     // Archive the generated site
     ZipCompress("./doc/_site", "./artifacts/site.zip");
-});
-
-// Run the XUnit tests via OpenCover, so be get an coverage.xml report
-Task("Coverage")
-    .IsDependentOn("Build")
-    .Does(() =>
-{
-    CreateDirectory("artifacts");
-
-    var openCoverSettings = new OpenCoverSettings() {
-        // Forces error in build when tests fail
-        ReturnTargetCodeOffset = 0
-    };
-
-    var projectFilePaths = GetFiles("./**/*.csproj")
-		.Where(p => !p.FullPath.ToLower().Contains("demo"))
-		.Where(p => !p.FullPath.ToLower().Contains("packages"))
-		.Where(p => !p.FullPath.ToLower().Contains("tools"))
-		.Where(p => !p.FullPath.ToLower().Contains("example"));
-
-    foreach(var projectFile in projectFilePaths)
-    {
-        var projectName = projectFile.GetDirectory().GetDirectoryName();
-        if (projectName.ToLower().Contains("test")) {
-            openCoverSettings.WithFilter("-["+projectName+"]*");
-            Information("OpenCover added filter -" + projectName);
-        }
-        else {
-            openCoverSettings.WithFilter("+["+projectName+"]*");
-            Information("OpenCover added filter +" + projectName);
-        }
-    }
-
-    // Make XUnit 2 run via the OpenCover process
-    OpenCover(
-        // The test tool Lamdba
-        tool => {
-            tool.XUnit2("./**/bin/**/*.Tests.dll",
-                new XUnit2Settings {
-                    // Add AppVeyor output, this "should" take care of a report inside AppVeyor
-                    ArgumentCustomization = args => {
-                        if (!BuildSystem.IsLocalBuild) {
-                            args.Append("-appveyor");
-                        }
-                        return args;
-                    },
-                    ShadowCopy = false,
-                    XmlReport = true,
-                    HtmlReport = true,
-                    ReportName = solutionName,
-                    OutputDirectory = "./artifacts",
-                    WorkingDirectory = "./src"
-                });
-            },
-        // The output path
-        new FilePath("./artifacts/coverage.xml"),
-        // Settings
-       openCoverSettings
-    );
 });
 
 // This starts the actual MSBuild
